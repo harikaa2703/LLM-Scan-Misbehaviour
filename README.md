@@ -1,171 +1,126 @@
-# LLMSCAN-MISBEHAVIOUR
+# 🔍 LLMSCAN-MISBEHAVIOUR
 
-**AI model safety scanner for evaluating LLM responses on safety, reliability, and trustworthiness before deployment in real applications.**
+> Catch toxic, biased, hallucinated, or jailbreak-prone LLM outputs before they ship.
 
-LLMSCAN lets users submit prompts, evaluate responses across multiple open-source LLMs, and inspect safety scores, behavioral indicators, and visual analysis.
+LLMSCAN is a safety evaluation toolkit for open-source language models. Submit a prompt, pick a model, and get back risk scores, behavioral breakdowns, and visual explainability — all from a local dashboard.
 
-## System Architecture
+---
 
-```
-User Prompt
-    ↓
-React Frontend (Dashboard UI)
-    ↓
-FastAPI Backend
-    ↓
-Selected LLM (TinyLlama / GPT-2 / GPT-Neo / Mistral)
-    ↓
-Feature Engine (65-D Vector)
-    ↓
-MLP Classifier
-    ↓
-Safety Scores & Risk Analysis
-    ↓
-Explainability (Heat Maps, Causal Maps)
-    ↓
-SQLite Storage
-```
+## 📋 Table of Contents
 
-## Supported Models
+- [What It Does](#-what-it-does)
+- [Quick Start](#-quick-start)
+- [How It Works](#-how-it-works)
+- [Supported Models](#-supported-models)
+- [API](#-api)
+- [Tech Stack](#-tech-stack)
+- [Caveats](#-caveats)
 
-| Model | Type | Purpose |
-|---|---|---|
-| TinyLlama | Lightweight LLM | Fast safety evaluation |
-| GPT-2 | Transformer LLM | Baseline comparison |
-| GPT-Neo 125M | Open Source LLM | Behavioral benchmarking |
-| Mistral | Advanced LLM | Robust safety assessment |
+---
 
-## Features
+## 🧠 What It Does
 
-- Scan prompts against TinyLLaMA, GPT-2, GPT-Neo, and Mistral
-- Generate a custom **65-dimensional feature vector** representing model behavior and safety characteristics
-- Detect toxicity, bias, jailbreak behavior, hallucination, harmful intent, deception, vulnerability exploitation, confidence anomalies, entropy-based uncertainty, and general misbehavior
-- Classify responses using a custom **MLP safety classifier**
-- Display risk summaries and detailed score breakdowns
-- Generate visual analytics: causal analysis, token confidence, entropy analysis, behavioral consistency plots, heatmaps, explainability visualizations
-- Compare safety performance across multiple foundation models
-- Save scan history locally via SQLite
-- React dashboard for running scans, comparisons, and viewing history
+LLMSCAN runs prompts through one or more LLMs and analyzes the responses for:
 
-## Tech Stack
+- **Toxicity** — harmful or offensive language
+- **Bias** — skewed or unfair outputs
+- **Jailbreak susceptibility** — does the model break its own guardrails
+- **Hallucination** — fabricated or unsupported claims
+- **Deception / harmful intent** — misleading or manipulative responses
+- **Confidence & entropy anomalies** — signals of uncertainty or instability
+- **General misbehavior** — anything else flagged as risky
 
-**Backend**
-- Python 3.12, FastAPI, Uvicorn, PyTorch, Hugging Face Transformers, Sentence Transformers, scikit-learn, SQLite
+Each response is converted into a **65-dimensional feature vector** and run through a custom **MLP classifier**, producing risk scores plus heatmaps, causal maps, and consistency plots.
 
-**Frontend**
-- React, TypeScript, Vite, Tailwind CSS, Axios, Recharts, Framer Motion
+---
 
-**Machine Learning**
-- Custom MLP Classifier
-- 65-Dimensional Feature Engineering Pipeline
-- Explainable AI Components
-- Safety Evaluation Modules
+## ⚡ Quick Start
 
-## Project Structure
-
-```
-llmscan/
-├── main.py
-├── requirements.txt
-├── scans.db
-├── scanners/
-├── frontend/
-├── tests/
-├── scripts/
-├── Dockerfile
-├── docker-compose.yml
-├── run.bat
-└── run.sh
-```
-
-## Requirements
-
-- Python 3.12 recommended (3.14 not recommended — some ML dependencies may not support it cleanly yet)
-- Node.js 18+ and npm
-- Internet connection for first-time model downloads
-- Optional: CUDA-capable GPU for faster inference
-
-## Setup
-
-**Backend** (from project root)
+**1. Backend**
 ```bash
 py -3.12 -m venv venv
 .\venv\Scripts\activate
-python -m pip install --upgrade pip
 pip install -r requirements.txt
 python main.py
 ```
-Runs at `http://localhost:5000` · Docs at `http://localhost:5000/docs`
+→ `http://localhost:5000` (docs at `/docs`)
 
-**Frontend** (second terminal)
+**2. Frontend**
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-Runs at `http://localhost:5173`
+→ `http://localhost:5173`
 
-## Safety Evaluation Workflow
+**Requirements:** Python 3.12 (not 3.14), Node.js 18+, internet for first-run model downloads, optional CUDA GPU.
 
-1. User submits a prompt and selects a model
-2. Model generates a response
-3. 65-D feature extraction pipeline analyzes the output
-4. Safety evaluators calculate toxicity, hallucination, jailbreak, deception, confidence, entropy, and vulnerability indicators
-5. Features passed into custom MLP classifier
-6. Risk scores and safety labels generated
-7. Explainability modules create visual insights and causal analysis
-8. Results stored in SQLite and displayed in dashboard
+---
 
-## API Endpoints
+## 🔄 How It Works
+
+```
+Prompt + Model Selection
+    ↓
+LLM generates response  (TinyLlama / GPT-2 / GPT-Neo / Mistral)
+    ↓
+65-D feature extraction
+    ↓
+MLP safety classifier
+    ↓
+Risk scores + explainability visuals
+    ↓
+Saved to SQLite, shown on dashboard
+```
+
+---
+
+## 🤖 Supported Models
+
+| Model | Type | Best For |
+|---|---|---|
+| TinyLlama | Lightweight | Fast iteration |
+| GPT-2 | Transformer | Baseline comparison |
+| GPT-Neo 125M | Open source | Behavioral benchmarking |
+| Mistral | Advanced | Robust safety checks |
+
+---
+
+## 📡 API
 
 | Method | Endpoint | Description |
 |---|---|---|
-| GET | `/health` | Checks whether the backend is running |
-| POST | `/scan` | Runs a safety scan for a prompt and selected model |
-| GET | `/progress` | Returns current scan progress |
-| GET | `/models` | Returns available model options |
-| POST | `/causal-map` | Generates causal/layer analysis |
-| GET | `/metrics` | Returns evaluation metric information |
-| GET | `/history` | Returns saved scan history |
-| POST | `/load` | Loads a previous scan result |
-| DELETE | `/history/{item_id}` | Deletes a saved scan |
+| GET | `/health` | Health check |
+| GET | `/models` | Available models |
+| POST | `/scan` | Run a safety scan |
+| GET | `/progress` | Scan progress |
+| POST | `/causal-map` | Causal/layer analysis |
+| GET | `/metrics` | Metric definitions |
+| GET | `/history` | Past scans |
+| POST | `/load` | Reload a past scan |
+| DELETE | `/history/{item_id}` | Delete a scan |
 
-**Supported model values:** `tinyllama`, `gpt2`, `gptneo`, `mistral`
-
-**Example scan request:**
+**Example:**
 ```json
-{
-  "prompt": "Explain how to stay safe online",
-  "model": "tinyllama"
-}
+{ "prompt": "Explain how to stay safe online", "model": "tinyllama" }
 ```
+Model values: `tinyllama`, `gpt2`, `gptneo`, `mistral`
 
-## How Results Are Stored
+---
 
-LLMSCAN uses a local SQLite database (`scans.db`) storing prompts, selected models, safety classifications, timestamps, extracted features, and full JSON scan results in a scan history table. An in-memory cache avoids recomputing previously evaluated prompt-model combinations.
+## 🛠️ Tech Stack
 
-To exclude scan history from GitHub, add to `.gitignore`:
-```
-scans.db
-```
+**Backend:** Python 3.12 · FastAPI · PyTorch · Hugging Face Transformers · Sentence Transformers · scikit-learn · SQLite
+**Frontend:** React · TypeScript · Vite · Tailwind CSS · Recharts · Framer Motion
+**ML:** Custom MLP classifier · 65-D feature pipeline · explainability modules
 
-## Notes
+Scan history is stored locally in `scans.db`. Add it to `.gitignore` if you don't want it tracked.
 
-- First scan can take several minutes (models may need to download)
-- Model files are cached locally after first download
-- Some Hugging Face models may require login/access approval
-- Backend uses CPU for safety evaluators and embeddings to reduce GPU memory requirements
-- If locally stored MLP `.pkl` models fail to load due to compatibility issues, fallback safety evaluators are used automatically
+---
 
-## Common Commands
+## ⚠️ Caveats
 
-| Action | Command |
-|---|---|
-| Run backend | `.\venv\Scripts\activate` → `python main.py` |
-| Run frontend | `cd frontend` → `npm run dev` |
-| Build frontend | `cd frontend` → `npm run build` |
-| Check Git status | `git status` |
-
-## Purpose
-
-LLMSCAN supports safer AI development by combining feature engineering, machine learning, explainability techniques, and behavioral analysis to identify risks and improve transparency in modern AI systems — going beyond raw response display to surface trustworthiness insights.
+- First scan is slow (models download on first use, then cache locally)
+- Some HF models may need login/access approval
+- Runs on CPU by default to keep GPU memory free
+- Corrupted/incompatible `.pkl` classifiers fall back to default evaluators automatically
