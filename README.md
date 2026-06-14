@@ -225,10 +225,3 @@ The scanner evaluates:
 - Check internet connection
 - Try increasing timeout
 
-## 📄 License
-
-MIT License
-
-## 👨‍💻 Author
-
-Built as a comprehensive AI safety scanning system.
